@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASP - Flashcards Mobile | Professor Moreira</title>
+<style>
+:root {
+  --azul:#062a55; --azul2:#0b4f9c; --rosa:#ffd7e8; --verde:#d7f8df; --amarelo:#ffe680; --branco:#fff;
+  --texto:#111;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; font-family: Arial, Helvetica, sans-serif; background:linear-gradient(180deg,#062a55,#0b4f9c);
+  color:var(--texto); min-height:100vh;
+}
+.app { max-width:480px; margin:0 auto; min-height:100vh; background:#f5f8ff; position:relative; overflow:hidden; }
+.header {
+  background:var(--azul); color:white; padding:14px 12px 10px; text-align:center; border-bottom:5px solid var(--amarelo);
+}
+.header h1 { margin:0; font-size:20px; line-height:1.2; }
+.header p { margin:5px 0 0; font-size:13px; font-weight:bold; }
+.screen { display:none; padding:18px; }
+.screen.active { display:block; }
+.start-card {
+  background:white; border-radius:22px; padding:22px; margin-top:18px; box-shadow:0 8px 20px rgba(0,0,0,.18);
+  border:3px solid var(--azul);
+}
+.start-title { font-size:25px; font-weight:900; color:var(--azul); text-align:center; margin-bottom:10px; }
+.subtitle { font-size:17px; text-align:center; line-height:1.35; font-weight:700; }
+input {
+  width:100%; padding:15px; border-radius:14px; border:2px solid var(--azul); font-size:18px; margin:18px 0 10px;
+}
+button {
+  border:0; border-radius:16px; padding:14px 16px; font-size:17px; font-weight:900; cursor:pointer;
+  box-shadow:0 5px 0 rgba(0,0,0,.18);
+}
+.btn-main { width:100%; background:#18a84a; color:white; margin:8px 0; }
+.btn-blue { background:var(--azul2); color:white; }
+.btn-red { background:#c62525; color:white; }
+.btn-yellow { background:var(--amarelo); color:#111; }
+.progress-wrap { padding:12px 16px 0; }
+.progress-text { display:flex; justify-content:space-between; font-size:14px; font-weight:bold; color:var(--azul); margin-bottom:6px; }
+.progress-bar { height:12px; background:#d8e2f0; border-radius:20px; overflow:hidden; }
+.progress { height:100%; width:0%; background:linear-gradient(90deg,#18a84a,#ffe680); transition:.3s; }
+.card-area { padding:14px 14px 8px; }
+.flashcard {
+  min-height:430px; border-radius:26px; padding:22px 18px; display:flex; flex-direction:column; justify-content:center; align-items:center;
+  text-align:center; box-shadow:0 10px 22px rgba(0,0,0,.22); border:4px solid var(--azul); transition:.25s;
+}
+.front { background:var(--rosa); }
+.back { background:var(--verde); }
+.badge { display:inline-block; padding:8px 13px; border-radius:999px; background:var(--azul); color:white; font-weight:900; margin-bottom:18px; font-size:15px; }
+.card-text { font-size:27px; line-height:1.24; font-weight:900; color:#000; white-space:pre-wrap; }
+.tip { font-size:15px; font-weight:700; color:var(--azul); margin-top:17px; }
+.nav { display:flex; gap:10px; padding:8px 14px 16px; }
+.nav button { flex:1; min-height:56px; }
+.small-actions { display:flex; gap:8px; padding:0 14px 18px; }
+.small-actions button { flex:1; font-size:14px; padding:11px; }
+.footer {
+  text-align:center; padding:10px; color:white; background:var(--azul); font-weight:bold; font-size:12px;
+}
+.final-box { background:white; border-radius:22px; padding:22px; margin-top:18px; border:3px solid var(--azul); text-align:center; }
+.final-box h2 { color:var(--azul); margin-top:0; font-size:28px; }
+.final-box p { font-size:18px; font-weight:bold; line-height:1.4; }
+@media (max-width:360px) {
+  .card-text { font-size:23px; }
+  .flashcard { min-height:390px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Curso de Contabilidade Professor Moreira</h1>
+    <p>CASP • Flashcards Mobile • WhatsApp: (61) 98532-3574</p>
+  </div>
+
+  <section id="startScreen" class="screen active">
+    <div class="start-card">
+      <div class="start-title">Flashcards de CASP</div>
+      <div class="subtitle">Digite seu nome para iniciar a jornada de revisão.</div>
+      <input id="studentName" placeholder="Nome do aluno">
+      <button class="btn-main" onclick="sendStart()">Enviar início ao professor</button>
+      <button class="btn-blue" onclick="startStudy()">Começar Flashcards</button>
+      <p class="subtitle" style="font-size:14px;margin-top:12px;">200 cartões de pergunta e resposta para o CFC.</p>
+    </div>
+  </section>
+
+  <section id="studyScreen" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-text"><span id="counter">Cartão 1 de 200</span><span id="sideText">Pergunta</span></div>
+      <div class="progress-bar"><div id="progress" class="progress"></div></div>
+    </div>
+
+    <div class="card-area">
+      <div id="flashcard" class="flashcard front" onclick="flipCard()">
+        <div id="badge" class="badge">PERGUNTA</div>
+        <div id="cardText" class="card-text"></div>
+        <div class="tip">Toque no cartão para virar</div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-blue" onclick="prevCard()">⬅ Voltar</button>
+      <button class="btn-yellow" onclick="flipCard()">Virar</button>
+      <button class="btn-blue" onclick="nextCard()">Avançar ➡</button>
+    </div>
+    <div class="small-actions">
+      <button class="btn-red" onclick="restart()">Reiniciar</button>
+      <button class="btn-main" onclick="finishStudy()">Concluir</button>
+    </div>
+  </section>
+
+  <section id="finishScreen" class="screen">
+    <div class="final-box">
+      <h2>Parabéns!</h2>
+      <p>Você concluiu os 200 flashcards de CASP.</p>
+      <button class="btn-main" onclick="sendFinish()">Enviar conclusão ao professor</button>
+      <button class="btn-blue" onclick="restart()">Estudar novamente</button>
+    </div>
+  </section>
+
+  <div class="footer">Curso de Contabilidade Professor Moreira • Mapas Mentais Contábeis • WhatsApp (61) 98532-3574</div>
+</div>
+
+<script>
+const cards = [{"q": "Quais são as três naturezas de informação do PCASP?", "a": "Patrimonial, Orçamentária e Controle."}, {"q": "Quais classes pertencem à natureza patrimonial?", "a": "Classes 1, 2, 3 e 4."}, {"q": "O que representa a Classe 1 do PCASP?", "a": "Ativo."}, {"q": "O que representa a Classe 2 do PCASP?", "a": "Passivo."}, {"q": "O que representa a Classe 3 do PCASP?", "a": "Variações Patrimoniais Diminutivas (VPD)."}, {"q": "O que representa a Classe 4 do PCASP?", "a": "Variações Patrimoniais Aumentativas (VPA)."}, {"q": "Quais classes pertencem à natureza orçamentária?", "a": "Classes 5 e 6."}, {"q": "O que representa a Classe 5 do PCASP?", "a": "Controles da Aprovação do Planejamento e Orçamento."}, {"q": "O que representa a Classe 6 do PCASP?", "a": "Controles da Execução do Planejamento e Orçamento."}, {"q": "Quais classes pertencem à natureza de controle?", "a": "Classes 7 e 8."}, {"q": "O que representa a Classe 7?", "a": "Controles Devedores."}, {"q": "O que representa a Classe 8?", "a": "Controles Credores."}, {"q": "Os lançamentos contábeis devem envolver contas de naturezas diferentes?", "a": "Não. Devem debitar e creditar contas da mesma natureza de informação."}, {"q": "Qual é o regime utilizado no enfoque orçamentário para as receitas?", "a": "Regime de caixa."}, {"q": "Segundo a Lei 4.320/64, pertencem ao exercício financeiro as receitas nele ________.", "a": "Arrecadadas."}, {"q": "Segundo a Lei 4.320/64, pertencem ao exercício financeiro as despesas nele ________.", "a": "Empenhadas."}, {"q": "O que é arrecadação da receita pública?", "a": "É a entrega dos recursos devidos ao Tesouro pelos contribuintes."}, {"q": "Receita pública, sob enfoque orçamentário, corresponde a quê?", "a": "Aos ingressos de recursos financeiros nos cofres públicos."}, {"q": "Qual regime é utilizado para reconhecimento das VPAs e VPDs?", "a": "Regime de competência."}, {"q": "O que significa VPA?", "a": "Variação Patrimonial Aumentativa."}, {"q": "O que significa VPD?", "a": "Variação Patrimonial Diminutiva."}, {"q": "Na contabilidade pública, qual conceito substitui a ideia de receita patrimonial da contabilidade privada?", "a": "Variação Patrimonial Aumentativa (VPA)."}, {"q": "Quando uma VPA deve ser reconhecida?", "a": "Quando ocorrer seu fato gerador."}, {"q": "O recebimento do dinheiro é condição para reconhecer uma VPA?", "a": "Não. O reconhecimento ocorre pelo regime de competência."}, {"q": "Qual é a principal diferença entre o enfoque orçamentário e o enfoque patrimonial?", "a": "O enfoque orçamentário utiliza predominantemente o regime de caixa, enquanto o patrimonial utiliza o regime de competência."}, {"q": "O que significa a sigla DCASP?", "a": "Demonstrações Contábeis Aplicadas ao Setor Público."}, {"q": "Quais são as principais DCASP?", "a": "BO, BF, BP, DVP, DFC, DMPL e Notas Explicativas."}, {"q": "O que significa BO?", "a": "Balanço Orçamentário."}, {"q": "O que significa BF?", "a": "Balanço Financeiro."}, {"q": "O que significa BP?", "a": "Balanço Patrimonial."}, {"q": "O que significa DVP?", "a": "Demonstração das Variações Patrimoniais."}, {"q": "O que significa DFC?", "a": "Demonstração dos Fluxos de Caixa."}, {"q": "O que significa DMPL?", "a": "Demonstração das Mutações do Patrimônio Líquido."}, {"q": "As Notas Explicativas integram as DCASP?", "a": "Sim."}, {"q": "As informações comparativas fazem parte das demonstrações contábeis?", "a": "Sim."}, {"q": "Qual demonstração evidencia a execução da receita e da despesa orçamentária?", "a": "Balanço Orçamentário."}, {"q": "Qual demonstração evidencia ingressos e dispêndios financeiros?", "a": "Balanço Financeiro."}, {"q": "Qual demonstração evidencia a situação patrimonial da entidade?", "a": "Balanço Patrimonial."}, {"q": "Qual demonstração evidencia as alterações ocorridas no patrimônio?", "a": "Demonstração das Variações Patrimoniais."}, {"q": "Qual demonstração evidencia entradas e saídas de caixa?", "a": "Demonstração dos Fluxos de Caixa."}, {"q": "Quais demonstrações refletem principalmente o aspecto patrimonial da CASP?", "a": "Balanço Patrimonial e Demonstração das Variações Patrimoniais."}, {"q": "O Balanço Orçamentário é elaborado principalmente com quais classes do PCASP?", "a": "Classes 5 e 6."}, {"q": "O Balanço Financeiro demonstra o resultado financeiro por meio da comparação entre quê?", "a": "Ingressos e dispêndios."}, {"q": "O saldo em espécie do exercício anterior aparece em qual lado do Balanço Financeiro?", "a": "Nos ingressos."}, {"q": "O saldo em espécie para o exercício seguinte aparece em qual lado do Balanço Financeiro?", "a": "Nos dispêndios."}, {"q": "O resultado financeiro positivo ocorre quando os ingressos são maiores que os dispêndios?", "a": "Sim."}, {"q": "Resultado financeiro positivo é sinônimo de superávit financeiro?", "a": "Não."}, {"q": "Em qual demonstração é apurado o superávit financeiro?", "a": "No Balanço Patrimonial."}, {"q": "Qual aspecto da contabilidade pública compreende o registro e a evidenciação do orçamento público?", "a": "Aspecto Orçamentário."}, {"q": "Qual aspecto da contabilidade pública compreende o registro e a evidenciação da composição patrimonial do ente público?", "a": "Aspecto Patrimonial."}, {"q": "Qual aspecto da contabilidade pública está relacionado aos indicadores da LRF?", "a": "Aspecto Fiscal."}, {"q": "Quais relatórios evidenciam principalmente o aspecto fiscal?", "a": "RGF e RREO."}, {"q": "O que significa RGF?", "a": "Relatório de Gestão Fiscal."}, {"q": "O que significa RREO?", "a": "Relatório Resumido da Execução Orçamentária."}, {"q": "Qual aspecto da CASP é mais beneficiado pelo processo de convergência às normas internacionais?", "a": "Aspecto Patrimonial."}, {"q": "Qual NBC trata da Estrutura Conceitual do Setor Público?", "a": "NBC TSP Estrutura Conceitual."}, {"q": "Qual é o objetivo principal dos Relatórios Contábeis de Propósito Geral (RCPGs)?", "a": "Prestação de contas e apoio à tomada de decisões."}, {"q": "Como é chamada a prestação de contas no setor público?", "a": "Accountability."}, {"q": "Quem são os principais usuários dos RCPGs?", "a": "Cidadãos, credores, doadores, órgãos de controle e usuários dos serviços públicos."}, {"q": "A informação contábil deve auxiliar apenas na tomada de decisões?", "a": "Não. Também deve auxiliar na prestação de contas."}, {"q": "Qual característica qualitativa fundamental exige que a informação seja relevante para o usuário?", "a": "Relevância."}, {"q": "Qual característica exige representação fiel dos fenômenos?", "a": "Representação fidedigna."}, {"q": "Qual característica permite comparar informações entre períodos?", "a": "Comparabilidade."}, {"q": "Qual característica permite que diferentes observadores cheguem a conclusões semelhantes?", "a": "Verificabilidade."}, {"q": "Qual característica exige divulgação em tempo oportuno?", "a": "Tempestividade."}, {"q": "Qual característica exige clareza e entendimento da informação?", "a": "Compreensibilidade."}, {"q": "Comparabilidade, verificabilidade, tempestividade e compreensibilidade são características de melhoria?", "a": "Sim."}, {"q": "O ativo é um recurso controlado pela entidade como resultado de evento passado?", "a": "Sim."}, {"q": "O ativo deve possuir potencial de serviços ou capacidade de gerar benefícios econômicos?", "a": "Sim."}, {"q": "O passivo representa obrigação presente da entidade?", "a": "Sim."}, {"q": "A obrigação presente surge de eventos passados?", "a": "Sim."}, {"q": "A liquidação do passivo normalmente resulta em saída de recursos?", "a": "Sim."}, {"q": "O patrimônio líquido corresponde à diferença entre ativos e passivos?", "a": "Sim."}, {"q": "As VPAs aumentam o patrimônio líquido?", "a": "Sim."}, {"q": "As VPDs reduzem o patrimônio líquido?", "a": "Sim."}, {"q": "Quais são os estágios da receita pública?", "a": "Previsão, Lançamento, Arrecadação e Recolhimento."}, {"q": "Qual é o primeiro estágio da receita pública?", "a": "Previsão."}, {"q": "O que representa a previsão da receita?", "a": "A estimativa de arrecadação constante na LOA."}, {"q": "O que é lançamento da receita?", "a": "A identificação do contribuinte, do valor devido e do vencimento."}, {"q": "Todo tipo de receita passa pelo estágio do lançamento?", "a": "Não."}, {"q": "O que é arrecadação da receita?", "a": "O recebimento dos recursos pelos agentes arrecadadores."}, {"q": "O que é recolhimento da receita?", "a": "A transferência dos recursos arrecadados para o Tesouro."}, {"q": "Em qual estágio da receita ocorre o ingresso do dinheiro nos cofres públicos?", "a": "Arrecadação."}, {"q": "Segundo a Lei 4.320/64, a receita orçamentária pertence ao exercício em que for:", "a": "Arrecadada."}, {"q": "O enfoque orçamentário adota qual regime para as receitas?", "a": "Regime de caixa."}, {"q": "O lançamento do IPTU gera VPA tributária?", "a": "Sim."}, {"q": "A arrecadação do IPTU gera nova VPA?", "a": "Não."}, {"q": "O lançamento do IPTU afeta o patrimônio líquido?", "a": "Sim."}, {"q": "A arrecadação do IPTU afeta o patrimônio líquido?", "a": "Não."}, {"q": "O depósito caução recebido é receita orçamentária?", "a": "Não."}, {"q": "O depósito caução é ingresso orçamentário ou extraorçamentário?", "a": "Extraorçamentário."}, {"q": "Operação de Crédito por Antecipação da Receita Orçamentária (ARO) é receita orçamentária?", "a": "Não."}, {"q": "ARO é ingresso orçamentário ou extraorçamentário?", "a": "Extraorçamentário."}, {"q": "Receita tributária decorre de transação com ou sem contraprestação?", "a": "Sem contraprestação."}, {"q": "Multas recebidas pelo Estado decorrem de transação com ou sem contraprestação?", "a": "Sem contraprestação."}, {"q": "Doações recebidas pelo ente público decorrem de transação com ou sem contraprestação?", "a": "Sem contraprestação."}, {"q": "Transferências recebidas decorrem de transação com ou sem contraprestação?", "a": "Sem contraprestação."}, {"q": "A maior parte das VPAs do setor público decorre de transações sem contraprestação?", "a": "Sim."}, {"q": "Nas transações sem contraprestação, a regra geral de mensuração é qual?", "a": "Valor justo."}, {"q": "Qual a principal exceção à regra do valor justo nas transações sem contraprestação?", "a": "Tributos, que utilizam a melhor estimativa."}, {"q": "Quais são os estágios da despesa pública?", "a": "Fixação, Empenho, Liquidação e Pagamento."}, {"q": "Qual é o primeiro estágio da despesa pública?", "a": "Fixação."}, {"q": "O que é fixação da despesa?", "a": "A autorização da despesa na Lei Orçamentária."}, {"q": "O que é empenho?", "a": "O ato que cria para o Estado obrigação de pagamento."}, {"q": "O empenho é o primeiro estágio da execução da despesa?", "a": "Sim."}, {"q": "O empenho depende de dotação orçamentária?", "a": "Sim."}, {"q": "O que é liquidação da despesa?", "a": "A verificação do direito adquirido pelo credor."}, {"q": "Na liquidação verifica-se o quê?", "a": "Origem, objeto, valor e credor da obrigação."}, {"q": "O que é pagamento da despesa?", "a": "A entrega dos recursos financeiros ao credor."}, {"q": "Segundo a Lei 4.320/64, a despesa pertence ao exercício em que for:", "a": "Empenhada."}, {"q": "O empenho representa um fato patrimonial?", "a": "Não."}, {"q": "O empenho afeta imediatamente o patrimônio líquido?", "a": "Não."}, {"q": "Em regra, quando surge a VPD de uma despesa corrente?", "a": "Na liquidação."}, {"q": "Em regra, quando surge o fato gerador da despesa corrente?", "a": "Na liquidação."}, {"q": "Despesa com pessoal normalmente gera VPD em qual estágio?", "a": "Liquidação."}, {"q": "A aquisição de um veículo gera VPD?", "a": "Não, em regra gera variação patrimonial qualitativa."}, {"q": "A compra de uma ambulância à vista altera o patrimônio líquido?", "a": "Não."}, {"q": "A compra de um imóvel é despesa efetiva?", "a": "Não."}, {"q": "A compra de um imóvel é despesa de capital?", "a": "Sim."}, {"q": "Despesas correntes são normalmente efetivas?", "a": "Sim."}, {"q": "Despesas de capital são normalmente efetivas?", "a": "Não."}, {"q": "O pagamento de restos a pagar processados gera nova VPD?", "a": "Não."}, {"q": "O pagamento de restos a pagar processados altera o patrimônio líquido?", "a": "Não."}, {"q": "O pagamento de restos a pagar processados afeta apenas contas patrimoniais?", "a": "Sim."}, {"q": "Restos a pagar pagos são considerados dispêndios extraorçamentários no Balanço Financeiro?", "a": "Sim."}, {"q": "Quantas classes possui o PCASP?", "a": "Oito classes."}, {"q": "Quais classes compõem a natureza patrimonial?", "a": "Classes 1, 2, 3 e 4."}, {"q": "Quais classes compõem a natureza orçamentária?", "a": "Classes 5 e 6."}, {"q": "Quais classes compõem a natureza de controle?", "a": "Classes 7 e 8."}, {"q": "A Classe 1 possui natureza devedora ou credora?", "a": "Devedora."}, {"q": "A Classe 2 possui natureza devedora ou credora?", "a": "Credora."}, {"q": "A Classe 3 (VPD) possui natureza devedora ou credora?", "a": "Devedora."}, {"q": "A Classe 4 (VPA) possui natureza devedora ou credora?", "a": "Credora."}, {"q": "A Classe 5 possui natureza devedora ou credora?", "a": "Devedora."}, {"q": "A Classe 6 possui natureza devedora ou credora?", "a": "Credora."}, {"q": "A Classe 7 possui natureza devedora ou credora?", "a": "Devedora."}, {"q": "A Classe 8 possui natureza devedora ou credora?", "a": "Credora."}, {"q": "Um lançamento contábil pode debitar uma conta patrimonial e creditar uma conta orçamentária?", "a": "Não."}, {"q": "Os lançamentos devem ocorrer dentro da mesma natureza de informação?", "a": "Sim."}, {"q": "A natureza patrimonial evidencia ativos, passivos e suas variações?", "a": "Sim."}, {"q": "A natureza orçamentária evidencia planejamento e execução do orçamento?", "a": "Sim."}, {"q": "A natureza de controle evidencia atos potenciais?", "a": "Sim."}, {"q": "A aprovação do orçamento movimenta quais classes?", "a": "Classes 5 e 6."}, {"q": "O empenho movimenta contas orçamentárias?", "a": "Sim."}, {"q": "A arrecadação da receita movimenta contas orçamentárias?", "a": "Sim."}, {"q": "O recebimento de caução movimenta contas patrimoniais?", "a": "Sim."}, {"q": "O recebimento de caução gera receita orçamentária?", "a": "Não."}, {"q": "O recebimento de caução gera passivo?", "a": "Sim."}, {"q": "A devolução de caução reduz o passivo?", "a": "Sim."}, {"q": "O PCASP é de utilização obrigatória pelos entes públicos?", "a": "Sim."}, {"q": "O que é estoque no setor público?", "a": "Ativo mantido para venda, distribuição ou consumo nas atividades da entidade."}, {"q": "Matérias-primas integram os estoques?", "a": "Sim."}, {"q": "Materiais de consumo podem integrar estoques?", "a": "Sim."}, {"q": "Mercadorias para revenda integram estoques?", "a": "Sim."}, {"q": "O preço de compra integra o custo do estoque?", "a": "Sim."}, {"q": "Tributos não recuperáveis integram o custo do estoque?", "a": "Sim."}, {"q": "Fretes integram o custo do estoque?", "a": "Sim."}, {"q": "Seguros de transporte integram o custo do estoque?", "a": "Sim."}, {"q": "Descontos comerciais integram o custo do estoque?", "a": "Não."}, {"q": "Abatimentos reduzem o custo do estoque?", "a": "Sim."}, {"q": "Perdas normais integram o custo do estoque?", "a": "Sim."}, {"q": "Perdas anormais integram o custo do estoque?", "a": "Não."}, {"q": "Perdas anormais geram VPD?", "a": "Sim."}, {"q": "O estoque deve ser mensurado pelo menor valor entre custo e valor realizável líquido?", "a": "Sim."}, {"q": "Quando o valor realizável líquido for inferior ao custo, o que ocorre?", "a": "Reconhecimento de perda."}, {"q": "O que é ativo imobilizado?", "a": "Ativo tangível mantido para uso na produção, fornecimento de serviços ou fins administrativos."}, {"q": "O imobilizado normalmente possui vida útil superior a um exercício?", "a": "Sim."}, {"q": "O custo de aquisição integra o valor do imobilizado?", "a": "Sim."}, {"q": "Custos diretamente atribuíveis integram o valor do imobilizado?", "a": "Sim."}, {"q": "Custos administrativos integram o valor do imobilizado?", "a": "Não."}, {"q": "O que é ativo intangível?", "a": "Ativo não monetário identificável sem substância física."}, {"q": "Softwares podem ser classificados como intangíveis?", "a": "Sim."}, {"q": "Marcas podem ser classificadas como intangíveis?", "a": "Sim."}, {"q": "O intangível possui substância física?", "a": "Não."}, {"q": "O intangível deve gerar potencial de serviços ou benefícios econômicos?", "a": "Sim."}, {"q": "O que é propriedade para investimento?", "a": "Imóvel mantido para obtenção de aluguel, valorização de capital ou ambos."}, {"q": "Imóvel utilizado na atividade administrativa é propriedade para investimento?", "a": "Não."}, {"q": "Imóvel alugado a terceiros pode ser propriedade para investimento?", "a": "Sim."}, {"q": "O que é provisão?", "a": "Passivo de prazo ou valor incerto."}, {"q": "A provisão é reconhecida quando existe obrigação presente?", "a": "Sim."}, {"q": "A provisão exige saída provável de recursos?", "a": "Sim."}, {"q": "A provisão exige estimativa confiável?", "a": "Sim."}, {"q": "Passivo contingente é reconhecido no balanço?", "a": "Não."}, {"q": "Passivo contingente possível deve ser divulgado?", "a": "Sim."}, {"q": "Passivo contingente remoto deve ser divulgado?", "a": "Não."}, {"q": "Ativo contingente é reconhecido contabilmente?", "a": "Não."}, {"q": "A reversão de provisão gera VPA?", "a": "Sim."}, {"q": "A constituição de provisão gera VPD?", "a": "Sim."}, {"q": "O que significa RCPG?", "a": "Relatório Contábil de Propósito Geral."}, {"q": "Qual o principal objetivo dos RCPGs?", "a": "Apoiar a tomada de decisão e a prestação de contas."}, {"q": "O aspecto fiscal está relacionado à LRF?", "a": "Sim."}, {"q": "Resultado primário é indicador fiscal?", "a": "Sim."}, {"q": "Resultado nominal é indicador fiscal?", "a": "Sim."}, {"q": "Disponibilidade de caixa é informação relevante para o aspecto fiscal?", "a": "Sim."}, {"q": "O RGF evidencia principalmente o aspecto fiscal?", "a": "Sim."}, {"q": "O RREO evidencia principalmente o aspecto fiscal?", "a": "Sim."}, {"q": "O BP e a DVP evidenciam principalmente qual aspecto?", "a": "Aspecto Patrimonial."}, {"q": "O BO e o BF evidenciam principalmente qual aspecto?", "a": "Aspecto Orçamentário."}, {"q": "A convergência às NBC TSP fortalece principalmente qual aspecto?", "a": "Aspecto Patrimonial."}, {"q": "Qual é a dica mais importante para provas de CASP?", "a": "Separar sempre o enfoque orçamentário (caixa/arrecadação/empenho) do enfoque patrimonial (competência/fato gerador/VPA/VPD)."}];
+let current = parseInt(localStorage.getItem('casp_current') || '0');
+let showingAnswer = false;
+let student = localStorage.getItem('casp_student') || '';
+
+const phone = '5561985323574';
+
+function qs(id) { return document.getElementById(id); }
+
+function showScreen(id) {
+  ['startScreen','studyScreen','finishScreen'].forEach(s => qs(s).classList.remove('active'));
+  qs(id).classList.add('active');
+}
+
+function sendWhatsApp(msg) {
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function sendStart() {
+  const name = qs('studentName').value.trim();
+  if(!name) { alert('Digite o nome do aluno.'); return; }
+  student = name;
+  localStorage.setItem('casp_student', student);
+  sendWhatsApp('Professor Moreira, o aluno(a) ' + student + ' iniciou os Flashcards Mobile de CASP com 200 cartões.');
+}
+
+function startStudy() {
+  const name = qs('studentName').value.trim() || student || 'Aluno';
+  student = name;
+  localStorage.setItem('casp_student', student);
+  showScreen('studyScreen');
+  render();
+}
+
+function render() {
+  if(current < 0) current = 0;
+  if(current >= cards.length) current = cards.length - 1;
+  localStorage.setItem('casp_current', current);
+  const c = cards[current];
+  const total = cards.length;
+  const percent = ((current + 1) / total) * 100;
+  qs('counter').textContent = 'Cartão ' + (current + 1) + ' de ' + total;
+  qs('progress').style.width = percent + '%';
+  qs('sideText').textContent = showingAnswer ? 'Resposta' : 'Pergunta';
+  qs('badge').textContent = showingAnswer ? 'RESPOSTA' : 'PERGUNTA';
+  qs('cardText').textContent = showingAnswer ? c.a : c.q;
+  qs('flashcard').className = 'flashcard ' + (showingAnswer ? 'back' : 'front');
+}
+
+function flipCard() {
+  showingAnswer = !showingAnswer;
+  render();
+}
+
+function nextCard() {
+  if(current < cards.length - 1) {
+    current++;
+    showingAnswer = false;
+    render();
+  } else {
+    finishStudy();
+  }
+}
+
+function prevCard() {
+  if(current > 0) {
+    current--;
+    showingAnswer = false;
+    render();
+  }
+}
+
+function restart() {
+  current = 0;
+  showingAnswer = false;
+  localStorage.setItem('casp_current', '0');
+  showScreen('studyScreen');
+  render();
+}
+
+function finishStudy() {
+  showScreen('finishScreen');
+}
+
+function sendFinish() {
+  const name = student || localStorage.getItem('casp_student') || 'Aluno';
+  sendWhatsApp('Professor Moreira, o aluno(a) ' + name + ' concluiu os 200 Flashcards Mobile de CASP.');
+}
+
+window.onload = () => {
+  if(student) qs('studentName').value = student;
+  render();
+};
+</script>
+</body>
+</html>
